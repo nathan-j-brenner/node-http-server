@@ -2,10 +2,14 @@
 'use strict';
 $(function() {
   /*
-  Update a user record. This function assumes the attribute inputs on the page go [name, email, age], and that
-  they're of type email or text.
-  After collecting the needed information, it sets all the inputs in the form to "disabled" until the response
-  comes back. If there's an error, it attaches a new div containing the error text.
+  Update a user record. This function assumes the attribute inputs on the page
+  go [name, email, age], and that they're of type email or text.
+  After collecting the needed information, it sets all the inputs in the form
+  to "disabled" until the response comes back. If there's an error, it
+  attaches a new div containing the error text.
+
+  Calls PATCH /api/people/{{id}} and does not inspect the body of a
+  success response.
   */
   function updateUser(event) {
     event.preventDefault();
@@ -40,8 +44,8 @@ $(function() {
   }
 
   /*
-  Given information about a user, create a new row for that user and insert it into the contact list.
-  The large blob of $(html) calls could also look like:
+  Given information about a user, create a new row for that user and insert it
+  into the contact list. The large blob of $(html) calls could also look like:
   <div class="row">
     <form action="/api/people/{{id}}">
       <label for="name-{{id}}">Name:</label>
@@ -55,8 +59,9 @@ $(function() {
     </form>
   </div>
 
-  Submitting the form triggers the deleteUser function above. Clicking the "delete" button
-  sends a DELETE request, and on success, removes the whole row.
+  Submitting the form triggers the deleteUser function above. Clicking the
+  "delete" button sends DELETE /api/people/{{id}} and doesn't inspect the
+  response.
 
   The newly-created row goes just above the "add new" row.
   */
@@ -86,7 +91,14 @@ $(function() {
     emailInput.val(email);
     ageInput.val(age);
 
-    form.append(nameLabel, nameInput, emailLabel, emailInput, ageLabel, ageInput, updateButton, deleteButton);
+    form.append(nameLabel,
+                nameInput,
+                emailLabel,
+                emailInput,
+                ageLabel,
+                ageInput,
+                updateButton,
+                deleteButton);
     form.submit(updateUser);
     entry.append(form);
 
@@ -94,9 +106,16 @@ $(function() {
   }
 
   /*
-  Submit event handler for the "add new contact" form. It gets the needed information from the form fields,
-  then makes a POST request to create a new contact. When the response comes back with the new contact's id,
-  pass all the gathered information, along with the new id, to appendContact.
+  Submit event handler for the "add new contact" form. It gets the needed
+  information from the form fields, then sends POST /api/peoople. When the
+  response comes back with the new contact's id, it passes all the gathered
+  information, plus the id from the resposne, to appendContact. It expects the
+  response to be JSON that looks like:
+
+  {
+    "status": "ok",
+    "id": [id of the new user]
+  }
   */
   $('.add-new form').submit(function(event) {
     event.preventDefault();
@@ -130,7 +149,22 @@ $(function() {
   /*
   On loading the page, fetch all the previously-created contacts.
   Pass them along to appendContact, so the page'll be populated with
-  everyone's information.
+  everyone's information. The call to GET /api/people expects a response
+  containing JSON that looks like:
+  [
+    {
+      "name": "Bill Gates",
+      "age": 59,
+      "email": "bill@microsoft.com",
+      "id": 8
+    },
+    {
+      "name": "Tim Cook",
+      "age": 54,
+      "email": "tim@apple.com",
+      "id": 9
+    }
+  ]
   */
   $.ajax('/api/people', {
     method: 'GET',
