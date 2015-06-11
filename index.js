@@ -32,10 +32,19 @@ function determineMediaType(filename) {
 }
 
 /*
-The "database." A list of users; their "id" is their index into this array. Deleting a user
-means setting their entry to null, so as not to re-index the list (since the page JS can know about indices).
+The "database." You could replace this with a real database like postgres if
+you want to. getId is generated with an IIFE to prevent accidentally accessing
+lastId manually.
 */
-var contacts = [];
+var contacts = {};
+
+var getId = (function() {
+  var lastId = 0;
+  return function getId() {
+    lastId = lastId + 1;
+    return lastId;
+  };
+})();
 
 /*
 Given a filename, serve it from the public/ folder. Attempt to infer its media-
@@ -91,14 +100,14 @@ function addUser(apiPath, request, response) {
 
   request.on('end', function() {
     body = querystring.parse(body);
-    var index = contacts.length,
-        responseBody;
+    var responseBody;
 
     if (isNaN(body.age)) {
       sendError(response, "Age must be a number (it's *just* a number, after all)");
     } else {
-      contacts[index] = body;
-      responseBody = JSON.stringify({status: 'ok', index: index});
+      body.id = getId();
+      contacts[body.id] = body;
+      responseBody = JSON.stringify({status: 'ok', id: body.id});
       response.writeHead(200, {'Content-Type': 'application/json', 'Content-Length': responseBody.length});
       response.write(responseBody);
       response.end();
@@ -108,7 +117,7 @@ function addUser(apiPath, request, response) {
 
 /*
 Update a user. Reads the request body just like addUser does, and does the same validation on age.
-Also checks to see that it's getting a valid user-index.
+Also checks to see that it's getting a valid user-id.
 */
 function updateUser(apiPath, request, response) {
   var body = '';
@@ -117,17 +126,18 @@ function updateUser(apiPath, request, response) {
   });
 
   request.on('end', function() {
-    var index = Number(apiPath.replace('people/', '')),
+    var id = Number(apiPath.replace('people/', '')),
         responseBody;
     body = querystring.parse(body);
 
-    if (contacts[index] === undefined || contacts[index] === null) {
-      sendError(response, "No such user :" + index);
+    if (contacts[id] === undefined || contacts[id] === null) {
+      sendError(response, "No such user :" + id);
     } else if (isNaN(body.age)) {
       sendError(response, "Age must be a number (it's *just* a number, after all)");
     } else {
-      contacts[index] = body;
-      responseBody = JSON.stringify({status: 'ok', index: index});
+      body[id] = id;
+      contacts[id] = body;
+      responseBody = JSON.stringify({status: 'ok'});
       response.writeHead(200, {'Content-Type': 'application/json', 'Content-Length': responseBody.length});
       response.write(responseBody);
       response.end();
@@ -136,41 +146,35 @@ function updateUser(apiPath, request, response) {
 }
 
 /*
-Return a list of all the contacts. JSON.stringify is sufficient here, since the "database" is just an in-memory
-array. Notice that the page JS is responsible for filtering out null entries, so that it gets the right indices.
-Suppose our contacts looked like
-  [
-    {"name": "Alice"},
-    null,
-    {"name": "Charles"}
-  ]
-
-If we filtered out nulls here, when the page received the list of users, it would think Charles's index was 2,
-instead of 3, so updates to Charles would fail.
+Return a list of all the contacts.
 */
 function listUsers(apiPath, request, response) {
-  var responseBody = JSON.stringify(contacts);
+  var users = Object.keys(contacts).map(function (key) {
+    return contacts[key];
+  });
+  var responseBody = JSON.stringify(users);
   response.writeHead(200, {'Content-Type': 'application/json', 'Content-Length': responseBody.length});
   response.write(responseBody);
   response.end();
 }
 
 /*
-Delete the given user by ID. Deleting in this case means replacing with null, so as to avoid reindexing.
-The request body doesn't have anything to tell us; we're just interested in the user-index on the url.
+Delete the given user by ID.
+The request body doesn't have anything to tell us; we're just interested
+in the user-id on the url.
 */
 function deleteUser(apiPath, request, response) {
   var responseBody,
-      index = Number(apiPath.replace('people/', ''));
+      id = Number(apiPath.replace('people/', ''));
 
-  if (contacts[index] === undefined || contacts[index] === null) {
-    sendError(response, "No such user :" + index);
+  if (contacts[id] === undefined) {
+    sendError(response, "No such user :" + id);
   } else {
-    contacts[index] = null;
-      responseBody = JSON.stringify({status: 'ok'});
-      response.writeHead(200, {'Content-Type': 'application/json', 'Content-Length': responseBody.length});
-      response.write(responseBody);
-      response.end();
+    delete contacts[id];
+    responseBody = JSON.stringify({status: 'ok'});
+    response.writeHead(200, {'Content-Type': 'application/json', 'Content-Length': responseBody.length});
+    response.write(responseBody);
+    response.end();
   }
 }
 

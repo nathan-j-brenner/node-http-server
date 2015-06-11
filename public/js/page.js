@@ -28,7 +28,8 @@ $(function() {
       success: function() {
         form.parent('div').find('.error').remove();
         form.find('input').attr('disabled', false);
-      }, error: function(response) {
+      },
+      error: function(response) {
         var errorMessage = $('<div class="error">');
         errorMessage.text(response.responseJSON.error);
         form.find('input').attr('disabled', false);
@@ -42,13 +43,13 @@ $(function() {
   Given information about a user, create a new row for that user and insert it into the contact list.
   The large blob of $(html) calls could also look like:
   <div class="row">
-    <form action="/api/people/{{index}}">
-      <label for="name-{{index}}">Name:</label>
-      <input type="text" name="name-{{index}}" id="name-{{index}}">
-      <label for="email-{{index}}">Email:</label>
-      <input type="email" name="email-{{index}}" id="email-{{index}}">
-      <label for="age-{{index}}">Age:</label>
-      <input type="text" name="age-{{index}}" id="age-{{index}}">
+    <form action="/api/people/{{id}}">
+      <label for="name-{{id}}">Name:</label>
+      <input type="text" name="name-{{id}}" id="name-{{id}}">
+      <label for="email-{{id}}">Email:</label>
+      <input type="email" name="email-{{id}}" id="email-{{id}}">
+      <label for="age-{{id}}">Age:</label>
+      <input type="text" name="age-{{id}}" id="age-{{id}}">
       <input type="submit" value="Update">
       <button>Delete</button>
     </form>
@@ -59,15 +60,15 @@ $(function() {
 
   The newly-created row goes just above the "add new" row.
   */
-  function appendContact(name, email, age, index) {
+  function appendContact(name, email, age, id) {
     var entry = $('<div class="row">'),
-        form = $('<form action="/api/people/' + index + '">'),
-        nameLabel = $('<label for="name-' + index + '">Name: </label>'),
-        nameInput = $('<input type="text" name="name-' + index + '" id="name-' + index + '">'),
-        emailLabel = $('<label for="email-' + index + '">Email: </label>'),
-        emailInput = $('<input type="email" name="email-' + index + '" id="email-' + index + '">'),
-        ageLabel = $('<label for="age-' + index + '">Age: </label>'),
-        ageInput = $('<input type="text" name="age-' + index + '" id="age-' + index + '">'),
+        form = $('<form action="/api/people/' + id + '">'),
+        nameLabel = $('<label for="name-' + id + '">Name: </label>'),
+        nameInput = $('<input type="text" name="name-' + id + '" id="name-' + id + '">'),
+        emailLabel = $('<label for="email-' + id + '">Email: </label>'),
+        emailInput = $('<input type="email" name="email-' + id + '" id="email-' + id + '">'),
+        ageLabel = $('<label for="age-' + id + '">Age: </label>'),
+        ageInput = $('<input type="text" name="age-' + id + '" id="age-' + id + '">'),
         updateButton = $('<input type="submit" value="Update">'),
         deleteButton = $('<button>Delete</button>');
 
@@ -112,7 +113,7 @@ $(function() {
         age: age
       },
       success: function(response) {
-        appendContact(name, email, age, response.index);
+        appendContact(name, email, age, response.id);
         $('#name, #email, #age').val('');
         form.attr('disabled', false);
         $('.add-new').find('.error').remove();
@@ -128,15 +129,15 @@ $(function() {
 
   /*
   On loading the page, fetch all the previously-created contacts.
-  Pass them along to appendContact, filtering out nulls.
-  We have to filter out nulls because of the crappy way the server-side code handles indexing.
+  Pass them along to appendContact, so the page'll be populated with
+  everyone's information.
   */
   $.ajax('/api/people', {
     method: 'GET',
     success: function(response) {
-      response.forEach(function(contact, index) {
+      response.forEach(function(contact) {
         if (contact !== null) {
-          appendContact(contact.name, contact.email, contact.age, index);
+          appendContact(contact.name, contact.email, contact.age, contact.id);
         }
       });
     }
