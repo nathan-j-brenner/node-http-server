@@ -9,6 +9,8 @@ var path = require('path');
 var url = require('url');
 var http = require('http');
 var server = http.createServer();
+var pg = require('pg');
+var knex = require('knex');
 
 /*
 HTTP responses can include a media type indicating what sort of stuff

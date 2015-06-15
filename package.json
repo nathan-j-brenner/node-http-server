@@ -1,0 +1,23 @@
+{
+  "name": "node-http-server",
+  "version": "1.0.0",
+  "description": "Simple HTTP server in Node",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies":{
+    "knex": "^0.8.6",
+    "pg": "^4.3.0",
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nathan-j-brenner/node-http-server.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nathan-j-brenner/node-http-server/issues"
+  },
+  "homepage": "https://github.com/nathan-j-brenner/node-http-server#readme"
+}
