@@ -10,7 +10,8 @@ var url = require('url');
 var http = require('http');
 var server = http.createServer();
 var pg = require('pg');
-var knex = require('knex');
+var knexConfig = require('./knexfile');
+var knex = require('knex')(knexConfig);
 
 /*
 HTTP responses can include a media type indicating what sort of stuff
@@ -96,12 +97,17 @@ respond with JSON indicating success.
 */
 function addUser(apiPath, request, response) {
   var body = '';
+  console.log(body);
   request.on('data', function(chunk) {
     body += chunk;
+    console.log(typeof body);
   });
 
   request.on('end', function() {
     body = querystring.parse(body);
+    console.log(body);
+    console.log(body.name);
+    knex('contacts').insert({name: body.name, email: body.email, age: body.age}).then();
     var responseBody;
 
     if (isNaN(body.age)) {
