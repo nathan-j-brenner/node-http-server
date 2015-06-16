@@ -161,22 +161,11 @@ function listUsers(apiPath, request, response) {
     return contacts[key];
   });
   knex('contacts').select('*').then(function(results){
-    // console.log(results);
     results = JSON.stringify(results);
-    // console.log(results);
     response.writeHead(200, {'Content-Type': 'application/json', 'Content-Length': results.length});
     response.write(results);
     response.end();
-  }).then(function(){
-    // // var responseBody = JSON.stringify(results);
-    // response.writeHead(200, {'Content-Type': 'application/json', 'Content-Length': responseBody.length});
-    // response.write(responseBody);
-    // response.end();
-  });
-  // var responseBody = JSON.stringify(users);
-  // response.writeHead(200, {'Content-Type': 'application/json', 'Content-Length': responseBody.length});
-  // response.write(responseBody);
-  // response.end();
+  }).then();
 }
 
 /*
