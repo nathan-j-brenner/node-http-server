@@ -97,16 +97,16 @@ respond with JSON indicating success.
 */
 function addUser(apiPath, request, response) {
   var body = '';
-  console.log(body);
+  // console.log(body);
   request.on('data', function(chunk) {
     body += chunk;
-    console.log(typeof body);
+    // console.log(typeof body);
   });
 
   request.on('end', function() {
     body = querystring.parse(body);
-    console.log(body);
-    console.log(body.name);
+    // console.log(body);
+    // console.log(body.name);
     knex('contacts').insert({name: body.name, email: body.email, age: body.age}).then();
     var responseBody;
 
@@ -160,10 +160,23 @@ function listUsers(apiPath, request, response) {
   var users = Object.keys(contacts).map(function (key) {
     return contacts[key];
   });
-  var responseBody = JSON.stringify(users);
-  response.writeHead(200, {'Content-Type': 'application/json', 'Content-Length': responseBody.length});
-  response.write(responseBody);
-  response.end();
+  knex('contacts').select('*').then(function(results){
+    // console.log(results);
+    results = JSON.stringify(results);
+    // console.log(results);
+    response.writeHead(200, {'Content-Type': 'application/json', 'Content-Length': results.length});
+    response.write(results);
+    response.end();
+  }).then(function(){
+    // // var responseBody = JSON.stringify(results);
+    // response.writeHead(200, {'Content-Type': 'application/json', 'Content-Length': responseBody.length});
+    // response.write(responseBody);
+    // response.end();
+  });
+  // var responseBody = JSON.stringify(users);
+  // response.writeHead(200, {'Content-Type': 'application/json', 'Content-Length': responseBody.length});
+  // response.write(responseBody);
+  // response.end();
 }
 
 /*
